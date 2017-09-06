@@ -1,5 +1,5 @@
-(function () {
-	window.maze = {};
+window.maze = (function () {
+	maze = {};
 
 	maze.canvas = document.getElementById("myCanvas");
 	maze.ctx = maze.canvas.getContext("2d");
@@ -12,13 +12,23 @@
 			cellSize: 8, //24,
 			wallWidth: 2,
 			rows: 100, //20,
-			cols: 100, //20
+			cols: 100, //20,
+			entrance: {
+				direction: 'South',
+				position: 90
+			},
+			exit: {
+				direction: 'West',
+				position: 10
+			}
 		}
 
 		this.cellSize = (values.cellSize ? values.cellSize : defaultValues.cellSize); // Width and Height
 		this.wallWidth = (values.wallWidth ? values.wallWidth : defaultValues.wallWidth); // 2
 		this.rows = (values.rows ? values.rows : defaultValues.rows); //20
 		this.cols = (values.cols ? values.cols : defaultValues.cols); //20
+		this.entrance = (values.entrance ? values.entrance : defaultValues.entrance);
+		this.exit = (values.exit ? values.exit : defaultValues.exit);
 
 		this.canvas.width = this.cols * this.cellSize;
 		this.canvas.height = this.rows * this.cellSize;
@@ -112,20 +122,44 @@
 	}
 
 	maze.RenderWall = function (posX, posY, direction) {
-		if (posX == 0 && posY == 0 && direction == this.directions.North) {
+		var render = true;
+		[this.entrance, this.exit].forEach(function (e) {
+			if (direction.name == e.direction) {
+				if (direction.edgePosX >= 0) {
+					if (posX == direction.edgePosX && posY == e.position) {
+						render = false;
+						//return;
+					}
+				}
+				if (direction.edgePosY >= 0) {
+					if (posX == e.position && posY == direction.edgePosY) {
+						render = false;
+						//return;
+					}
+				}
+			}
+		});
+		/*if (posX == 0 && posY == 0 && direction.name == this.entrance.direction) {
 			return;
 		}
 
-		if (posX == (this.cols - 1) && posY == (this.rows - 1) && direction == this.directions.South) {
+		if (posX == (this.cols - 1) && posY == (this.rows - 1) && direction.name == this.entrance.direction) {
 			return;
+		}*/
+		if (render) {
+			this.ctx.beginPath();
+			//this.ctx.rect((posX * cellSize) + direction.wallPosition[0], (posY * cellSize) + direction.wallPosition[1], 0 + direction.wallPosition[2], 0 + direction.wallPosition[3]);
+			this.ctx.rect((posX * this.cellSize) + direction.wallPosition[0], (posY * this.cellSize) + direction.wallPosition[1], 0 + direction.wallPosition[2], 0 + direction.wallPosition[3]);
+			this.ctx.fillStyle = "#000000";
+			this.ctx.fill();
+			this.ctx.closePath();
+		} else {
+			maze.ctx.beginPath();
+			maze.ctx.rect((posX * maze.cellSize) + (maze.cellSize / 2) - 2, (posY * maze.cellSize) + (maze.cellSize / 2) - 2, 4, 4);
+			maze.ctx.fillStyle = "#FF0000";
+			maze.ctx.fill();
+			maze.ctx.closePath();
 		}
-
-		this.ctx.beginPath();
-		//this.ctx.rect((posX * cellSize) + direction.wallPosition[0], (posY * cellSize) + direction.wallPosition[1], 0 + direction.wallPosition[2], 0 + direction.wallPosition[3]);
-		this.ctx.rect((posX * this.cellSize) + direction.wallPosition[0], (posY * this.cellSize) + direction.wallPosition[1], 0 + direction.wallPosition[2], 0 + direction.wallPosition[3]);
-		this.ctx.fillStyle = "#000000";
-		this.ctx.fill();
-		this.ctx.closePath();
 	}
 
 	maze.CreatePassage = function (cell, otherCell, direction) {
@@ -163,6 +197,8 @@
 				name: 'North',
 				wallPosition: [0 - (maze.wallWidth / 2), 0 - (maze.wallWidth / 2), maze.cellSize + maze.wallWidth, maze.wallWidth], // X, Y, Width, Height
 				toPosition: [0, -1],
+				edgePosX: -1,
+				startPosY: 0,
 				getOpposite: function () {
 					return maze.directions.South;
 				}
@@ -171,6 +207,8 @@
 				name: 'East',
 				wallPosition: [maze.cellSize - maze.wallWidth + (maze.wallWidth / 2), 0 - (maze.wallWidth / 2), maze.wallWidth, maze.cellSize + maze.wallWidth],
 				toPosition: [1, 0],
+				edgePosX: this.cols - 1,
+				edgePosY: -1,
 				getOpposite: function () {
 					return maze.directions.West;
 				}
@@ -179,6 +217,8 @@
 				name: 'South',
 				wallPosition: [0 - (maze.wallWidth / 2), maze.cellSize - maze.wallWidth + (maze.wallWidth / 2), maze.cellSize + maze.wallWidth, maze.wallWidth],
 				toPosition: [0, 1],
+				edgePosX: -1,
+				edgePosY: this.rows - 1,
 				getOpposite: function () {
 					return maze.directions.North;
 				}
@@ -187,9 +227,19 @@
 				name: 'West',
 				wallPosition: [0 - (maze.wallWidth / 2), 0 - (maze.wallWidth / 2), maze.wallWidth, maze.cellSize + maze.wallWidth],
 				toPosition: [-1, 0],
+				edgePosX: 0,
+				edgePosY: -1,
 				getOpposite: function () {
 					return maze.directions.East;
 				}
+			},
+			GetArray: function () {
+				return [
+					maze.directions.North,
+					maze.directions.East,
+					maze.directions.South,
+					maze.directions.West
+				];
 			},
 			ByIndex: function (idx) {
 				switch (idx) {
@@ -199,24 +249,33 @@
 					case 3: return maze.directions.West;
 				}
 			},
+			ByName: function (name) {
+				switch (name.toLowerCase()) {
+					case 'north': return maze.directions.North;
+					case 'east': return maze.directions.East;
+					case 'south': return maze.directions.South;
+					case 'west': return maze.directions.West;
+				}
+			},
 			length: 4
 		};
 
+		[this.entrance, this.exit].forEach(function (e) {
+			var direction = maze.directions.ByName(e.direction);
+			if (direction.edgePosX >= 0) {
+				e.posX = direction.edgePosX;
+				e.posY = e.position;
+			} else if (direction.edgePosY >= 0) {
+				e.posX = e.position;
+				e.posY = direction.edgePosY;
+			}
+		});
 	}
 
-	maze.generateMaze({
-		cellSize: 8,
-		wallWidth: 2,
-		rows: 100,
-		cols: 100
-	});
+	return maze;
 })();
-
 
 function GenerateRandomRange(min, max) {
 	max = max - min;
 	return Math.floor(Math.random() * max) + min
 }
-
-console.log("Well, hello there! Seems we've got a curious one here, haha. Feel free to look at my code, though be warned, I made this without giving it much thought and just wanted to test out an algorithm. " +
-	"If you want to learn from this I am sure there are much better examples you can find, somewhere. ");

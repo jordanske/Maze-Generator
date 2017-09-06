@@ -4,7 +4,9 @@
 <head>
 	<meta charset="utf-8" />
 	<title>Maze Generator - By Jordanske</title>
-	<link rel="stylesheet" href="main.css">
+
+	<link rel="stylesheet" href="css/main.css">
+
 </head>
 
 <body>
@@ -12,12 +14,14 @@
 	<center>
 		<h1>Maze Generator!</h1>
 		<br />
-		<button onclick="maze.generateMaze({})">Regenerate</button>
+		<button onclick="maze.generateMaze({})">Regenerate</button> <button onclick="solve(maze)">Solve</button>
 	</center>
 
 	<canvas id="myCanvas" width="480" height="480"></canvas>
 
-	<script type="text/javascript" src="main.js"></script>
+	<script type="text/javascript" src="js/maze.js"></script>
+	<script type="text/javascript" src="js/solver.js"></script>
+	<script type="text/javascript" src="js/main.js"></script>
 
 </body>
 
