@@ -15,7 +15,7 @@ window.maze = (function () {
 		}
 
 		this.cellSize = 10;
-		this.wallWidth = 2;
+		this.wallWidth = 10;
 		this.rows = (values.rows ? values.rows : defaultValues.rows);
 		this.cols = (values.cols ? values.cols : defaultValues.cols);
 		this.entranceLocation = (values.entrance ? values.entrance : defaultValues.entrance);
@@ -23,8 +23,10 @@ window.maze = (function () {
 		this.canvas.width = 1200;
 		this.canvas.height = 1200;
 
-		this.cellSize = 1200 / (this.rows > this.cols ? this.rows : this.cols);
+		this.cellSize = ((1200) / (this.rows > this.cols ? this.rows : this.cols));
 		this.wallWidth = this.cellSize * 0.2;
+		this.cellSize = ((1200 - this.wallWidth) / (this.rows > this.cols ? this.rows : this.cols));
+		this.offset = (this.wallWidth / 2);
 
 		this.cellList = this.InitializeList();
 		this.CalculateDirections();
@@ -173,7 +175,7 @@ window.maze = (function () {
 
 		if (!gateway) {
 			this.ctx.beginPath();
-			this.ctx.rect((posX * this.cellSize) + direction.wallPosition[0], (posY * this.cellSize) + direction.wallPosition[1], 0 + direction.wallPosition[2], 0 + direction.wallPosition[3]);
+			CTXRect((posX * this.cellSize) + direction.wallPosition[0], (posY * this.cellSize) + direction.wallPosition[1], 0 + direction.wallPosition[2], 0 + direction.wallPosition[3]);
 			this.ctx.fillStyle = "#000000";
 			this.ctx.fill();
 			this.ctx.closePath();
@@ -287,9 +289,9 @@ window.maze = (function () {
 					var gatewaySize = maze.cellSize - maze.wallWidth;
 					maze.ctx.beginPath();
 
-					maze.ctx.moveTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
-					maze.ctx.lineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
-					maze.ctx.lineTo((posX * maze.cellSize) + (maze.cellSize / 2), (posY * maze.cellSize) + gatewaySize);
+					CTXMoveTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
+					CTXLineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
+					CTXLineTo((posX * maze.cellSize) + (maze.cellSize / 2), (posY * maze.cellSize) + gatewaySize);
 
 					maze.ctx.fillStyle = gateway.color;
 					maze.ctx.fill();
@@ -309,9 +311,9 @@ window.maze = (function () {
 					var gatewaySize = maze.cellSize - maze.wallWidth;
 					maze.ctx.beginPath();
 
-					maze.ctx.moveTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.cellSize / 2));
-					maze.ctx.lineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
-					maze.ctx.lineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + gatewaySize + (maze.wallWidth / 2));
+					CTXMoveTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.cellSize / 2));
+					CTXLineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
+					CTXLineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + gatewaySize + (maze.wallWidth / 2));
 
 					maze.ctx.fillStyle = gateway.color;
 					maze.ctx.fill();
@@ -331,9 +333,9 @@ window.maze = (function () {
 					var gatewaySize = maze.cellSize - maze.wallWidth;
 					maze.ctx.beginPath();
 
-					maze.ctx.moveTo((posX * maze.cellSize) + (maze.cellSize / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
-					maze.ctx.lineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + gatewaySize + (maze.wallWidth / 2));
-					maze.ctx.lineTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + gatewaySize + (maze.wallWidth / 2));
+					CTXMoveTo((posX * maze.cellSize) + (maze.cellSize / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
+					CTXLineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + gatewaySize + (maze.wallWidth / 2));
+					CTXLineTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + gatewaySize + (maze.wallWidth / 2));
 
 					maze.ctx.fillStyle = gateway.color;
 					maze.ctx.fill();
@@ -353,9 +355,9 @@ window.maze = (function () {
 					var gatewaySize = (maze.cellSize - maze.wallWidth);
 					maze.ctx.beginPath();
 
-					maze.ctx.moveTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
-					maze.ctx.lineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.cellSize / 2));
-					maze.ctx.lineTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + gatewaySize + (maze.wallWidth / 2));
+					CTXMoveTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
+					CTXLineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.cellSize / 2));
+					CTXLineTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + gatewaySize + (maze.wallWidth / 2));
 
 					maze.ctx.fillStyle = gateway.color;
 					maze.ctx.fill();
@@ -396,4 +398,16 @@ window.maze = (function () {
 function GenerateRandomRange(min, max) {
 	max = max - min;
 	return Math.floor(Math.random() * max) + min
+}
+
+function CTXMoveTo(x, y) {
+	maze.ctx.moveTo(x + maze.offset, y + maze.offset);
+}
+
+function CTXLineTo(x, y) {
+	maze.ctx.lineTo(x + maze.offset, y + maze.offset);
+}
+
+function CTXRect(x, y, w, h) {
+	maze.ctx.rect(x + maze.offset, y + maze.offset, w, h);
 }

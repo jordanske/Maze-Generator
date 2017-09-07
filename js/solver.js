@@ -151,8 +151,8 @@ function generateLine(points, ctx, lineWidth) {
 
 				ctx.strokeStyle = grad;
 
-				ctx.moveTo(fromX, fromY);
-				ctx.lineTo(toX, toY);
+				CTXMoveTo(fromX, fromY);
+				CTXLineTo(toX, toY);
 				ctx.stroke();
 				ctx.closePath();
 			}
