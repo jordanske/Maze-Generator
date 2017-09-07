@@ -3,22 +3,75 @@
 
 <head>
 	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Maze Generator - By Jordanske</title>
 
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
 	<link rel="stylesheet" href="css/main.css">
 
 </head>
 
 <body>
 
-	<center>
-		<h1>Maze Generator!</h1>
-		<br />
-		<button onclick="maze.generateMaze({})">Regenerate</button> <button onclick="solve(maze)">Solve</button>
-	</center>
+	<ul id="slide-out" class="side-nav fixed red lighten-6">
+		<li><a href="#!" id="menu_button_solve" class="waves-effect waves-red"><i class="material-icons">track_changes</i>Solve</a></li>
+		<li><a href="#!" id="menu_button_generate" class="waves-effect waves-red"><i class="material-icons">cached</i>Regenerate</a></li>
+		<div class="row">
+			<form class="col s12">
+				<div class="row">
+					<div class="input-field col s6">
+						<i class="material-icons prefix">swap_horiz</i>
+						<input id="maze_input_x" type="text" value="20" autocomplete="off">
+						<label for="maze_input_x">X</label>
+					</div>
+					<div class="input-field col s6">
+						<i class="material-icons prefix">swap_vert</i>
+						<input id="maze_input_y" type="text" value="20" autocomplete="off">
+						<label for="maze_input_y">Y</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field col s12">
+						<select id="maze_dir_select" autocomplete="off">
+							<option value="" selected>Random</option>
+							<option value="North">North</option>
+							<option value="East">East</option>
+							<option value="South">South</option>
+							<option value="West">West</option>
+						</select>
+						<label>Entrance location</label>
+					</div>
+				</div>
+			</form>
+		</div>
+	</ul>
 
-	<canvas id="myCanvas" width="480" height="480"></canvas>
+	<header>
+		<nav>
+			<div class="nav-wrapper red lighten-1">
+				<a href="#" class="brand-logo center">Maze Generator</a>
+				<ul id="nav-mobile" class="left hide-on-med-and-down">
+					<li><a href="#" data-activates="slide-out" class="button-collapse"><i class="material-icons">menu</i></a></li>
+				</ul>
+			</div>
+		</nav>
+	</header>
 
+	<main>
+		<div class="canvas-wrapper">
+			<canvas id="maze-canvas" width="0" height="0"></canvas>
+		</div>
+	</main>
+
+	<footer></footer>
+
+
+	<!-- Scripts -->
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
 	<script type="text/javascript" src="js/maze.js"></script>
 	<script type="text/javascript" src="js/solver.js"></script>
 	<script type="text/javascript" src="js/main.js"></script>

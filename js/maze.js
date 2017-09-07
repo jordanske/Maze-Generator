@@ -1,7 +1,7 @@
 window.maze = (function () {
 	maze = {};
 
-	maze.canvas = document.getElementById("myCanvas");
+	maze.canvas = document.getElementById("maze-canvas");
 	maze.ctx = maze.canvas.getContext("2d");
 
 	/* Generate the maze */
@@ -9,39 +9,69 @@ window.maze = (function () {
 	maze.generateMaze = function (values) {
 
 		var defaultValues = {
-			cellSize: 8, //24,
-			wallWidth: 2,
-			rows: 100, //20,
-			cols: 100, //20,
-			entrance: {
-				direction: 'South',
-				position: 90
-			},
-			exit: {
-				direction: 'West',
-				position: 10
-			}
+			rows: 100,
+			cols: 100,
+			entrance: ""
 		}
 
-		this.cellSize = (values.cellSize ? values.cellSize : defaultValues.cellSize); // Width and Height
-		this.wallWidth = (values.wallWidth ? values.wallWidth : defaultValues.wallWidth); // 2
-		this.rows = (values.rows ? values.rows : defaultValues.rows); //20
-		this.cols = (values.cols ? values.cols : defaultValues.cols); //20
-		this.entrance = (values.entrance ? values.entrance : defaultValues.entrance);
-		this.exit = (values.exit ? values.exit : defaultValues.exit);
+		this.cellSize = 10;
+		this.wallWidth = 2;
+		this.rows = (values.rows ? values.rows : defaultValues.rows);
+		this.cols = (values.cols ? values.cols : defaultValues.cols);
+		this.entranceLocation = (values.entrance ? values.entrance : defaultValues.entrance);
 
-		this.canvas.width = this.cols * this.cellSize;
-		this.canvas.height = this.rows * this.cellSize;
+		this.canvas.width = 1200;
+		this.canvas.height = 1200;
+
+		this.cellSize = 1200 / (this.rows > this.cols ? this.rows : this.cols);
+		this.wallWidth = this.cellSize * 0.2;
 
 		this.cellList = this.InitializeList();
 		this.CalculateDirections();
 		this.activeCells = [];
+
+		this.setRandomGateways();
 
 		this.doFirstGenerationStep();
 
 		while (maze.activeCells.length > 0) {
 			this.doNextGenerationStep();
 		}
+
+		this.RenderMaze();
+	}
+
+	maze.setRandomGateways = function () {
+		this.entrance = {
+			color: "#03a9f4",
+			isExit: false
+		};
+		this.exit = {
+			color: "#f44336",
+			isExit: true
+		};
+		var direction = null;
+
+		[this.entrance, this.exit].forEach(function (e) {
+			if (!direction) {
+				if (!maze.entranceLocation || maze.entranceLocation == "") {
+					direction = maze.directions.ByIndex(GenerateRandomRange(0, maze.directions.length));
+				} else {
+					direction = maze.directions.ByName(maze.entranceLocation);
+				}
+				e.direction = direction;
+			} else {
+				e.direction = direction.GetOpposite();
+			}
+
+			if (e.direction.edgePosX >= 0) {
+				e.posX = e.direction.edgePosX;
+				e.posY = GenerateRandomRange(0, maze.rows);
+			} else if (e.direction.edgePosY >= 0) {
+				e.posX = GenerateRandomRange(0, maze.cols);
+				e.posY = e.direction.edgePosY;
+			}
+		});
 	}
 
 	maze.doFirstGenerationStep = function () {
@@ -94,6 +124,10 @@ window.maze = (function () {
 			this.initializedWallCount++;
 		}
 
+		cell.IsWall = function (direction) {
+			return this.walls[direction.name] == 1;
+		}
+
 		cell.GetRandomUninitializedDirection = function () {
 			var skips = GenerateRandomRange(0, maze.directions.length - this.initializedWallCount);
 			for (i = 0; i < maze.directions.length; i++) {
@@ -112,63 +146,110 @@ window.maze = (function () {
 		return cell;
 	}
 
+	/* Create a wall */
+
 	maze.CreateWall = function (cell, otherCell, direction) {
 		cell.SetWall(direction, 1);
-		this.RenderWall(cell.posX, cell.posY, direction);
+		//this.RenderWall(cell.posX, cell.posY, direction);
 		if (otherCell) {
-			otherCell.SetWall(direction.getOpposite(), 1);
-			this.RenderWall(otherCell.posX, otherCell.posY, direction.getOpposite());
+			otherCell.SetWall(direction.GetOpposite(), 1);
+			//this.RenderWall(otherCell.posX, otherCell.posY, direction.GetOpposite());
 		}
 	}
 
 	maze.RenderWall = function (posX, posY, direction) {
-		var render = true;
+		/*var isGateway = false;
+		//var color = "#000000";
 		[this.entrance, this.exit].forEach(function (e) {
-			if (direction.name == e.direction) {
-				if (direction.edgePosX >= 0) {
-					if (posX == direction.edgePosX && posY == e.position) {
-						render = false;
-						//return;
-					}
-				}
-				if (direction.edgePosY >= 0) {
-					if (posX == e.position && posY == direction.edgePosY) {
-						render = false;
-						//return;
-					}
+			if (direction.name == e.direction.name) {
+				if (posX == e.posX && posY == e.posY) {
+					//color = e.color;
+					isGateway = true;
 				}
 			}
-		});
-		/*if (posX == 0 && posY == 0 && direction.name == this.entrance.direction) {
-			return;
-		}
+		});*/
 
-		if (posX == (this.cols - 1) && posY == (this.rows - 1) && direction.name == this.entrance.direction) {
-			return;
-		}*/
-		if (render) {
+		var gateway = maze.IsGateway(posX, posY, direction);
+
+		if (!gateway) {
 			this.ctx.beginPath();
-			//this.ctx.rect((posX * cellSize) + direction.wallPosition[0], (posY * cellSize) + direction.wallPosition[1], 0 + direction.wallPosition[2], 0 + direction.wallPosition[3]);
 			this.ctx.rect((posX * this.cellSize) + direction.wallPosition[0], (posY * this.cellSize) + direction.wallPosition[1], 0 + direction.wallPosition[2], 0 + direction.wallPosition[3]);
 			this.ctx.fillStyle = "#000000";
 			this.ctx.fill();
 			this.ctx.closePath();
-		} else {
+		}/* else {
+			var gatewaySize = maze.cellSize - maze.wallWidth;
 			maze.ctx.beginPath();
-			maze.ctx.rect((posX * maze.cellSize) + (maze.cellSize / 2) - 2, (posY * maze.cellSize) + (maze.cellSize / 2) - 2, 4, 4);
-			maze.ctx.fillStyle = "#FF0000";
+			maze.ctx.rect((posX * maze.cellSize) + (maze.cellSize / 2) - (gatewaySize / 2), (posY * maze.cellSize) + (maze.cellSize / 2) - (gatewaySize / 2), gatewaySize, gatewaySize);
+			maze.ctx.fillStyle = color;
 			maze.ctx.fill();
 			maze.ctx.closePath();
+		}*/
+	}
+
+	maze.RenderCell = function (posX, posY, direction) {
+		var gateway = maze.IsGateway(posX, posY);
+
+		if (gateway) {
+			if (!gateway.isExit) {
+				gateway.direction.DrawGateway(posX, posY, gateway);
+			} else {
+				gateway.direction.GetOpposite().DrawGateway(posX, posY, gateway);
+			}
+		}
+	}
+
+	maze.RenderMaze = function () {
+
+		/* Render Cells */
+
+		for (x = 0; x < this.cols; x++) {
+			for (y = 0; y < this.rows; y++) {
+				var cell = this.GetCell(x, y);
+				if (cell) {
+					this.RenderCell(cell.posX, cell.posY);
+				}
+			}
+		}
+
+		/* Render Wall */
+
+		var directions = this.directions.GetArray();
+
+		for (x = 0; x < this.cols; x++) {
+			for (y = 0; y < this.rows; y++) {
+				var cell = this.GetCell(x, y);
+				if (cell) {
+					for (var direction of directions) {
+						if (cell.IsWall(direction)) {
+							this.RenderWall(cell.posX, cell.posY, direction);
+						}
+					}
+				}
+			}
 		}
 	}
 
 	maze.CreatePassage = function (cell, otherCell, direction) {
 		cell.SetWall(direction, 0);
-		otherCell.SetWall(direction.getOpposite(), 0);
+		otherCell.SetWall(direction.GetOpposite(), 0);
 	}
 
 	maze.GetCell = function (posX, posY) {
 		return this.cellList[posX] ? this.cellList[posX][posY] : null;
+	}
+
+	maze.IsGateway = function (posX, posY, direction) {
+		var gateway = null;
+		[this.entrance, this.exit].forEach(function (e) {
+			if (!direction || direction.name == e.direction.name) {
+				if (posX == e.posX && posY == e.posY) {
+					gateway = e;
+				}
+			}
+		});
+
+		return gateway;
 	}
 
 	/* Check if the position is inside the boundary */
@@ -198,9 +279,21 @@ window.maze = (function () {
 				wallPosition: [0 - (maze.wallWidth / 2), 0 - (maze.wallWidth / 2), maze.cellSize + maze.wallWidth, maze.wallWidth], // X, Y, Width, Height
 				toPosition: [0, -1],
 				edgePosX: -1,
-				startPosY: 0,
-				getOpposite: function () {
+				edgePosY: 0,
+				GetOpposite: function () {
 					return maze.directions.South;
+				},
+				DrawGateway: function (posX, posY, gateway) {
+					var gatewaySize = maze.cellSize - maze.wallWidth;
+					maze.ctx.beginPath();
+
+					maze.ctx.moveTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
+					maze.ctx.lineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
+					maze.ctx.lineTo((posX * maze.cellSize) + (maze.cellSize / 2), (posY * maze.cellSize) + gatewaySize);
+
+					maze.ctx.fillStyle = gateway.color;
+					maze.ctx.fill();
+					maze.ctx.closePath();
 				}
 			},
 			East: {
@@ -209,8 +302,20 @@ window.maze = (function () {
 				toPosition: [1, 0],
 				edgePosX: this.cols - 1,
 				edgePosY: -1,
-				getOpposite: function () {
+				GetOpposite: function () {
 					return maze.directions.West;
+				},
+				DrawGateway: function (posX, posY, gateway) {
+					var gatewaySize = maze.cellSize - maze.wallWidth;
+					maze.ctx.beginPath();
+
+					maze.ctx.moveTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.cellSize / 2));
+					maze.ctx.lineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
+					maze.ctx.lineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + gatewaySize + (maze.wallWidth / 2));
+
+					maze.ctx.fillStyle = gateway.color;
+					maze.ctx.fill();
+					maze.ctx.closePath();
 				}
 			},
 			South: {
@@ -219,8 +324,20 @@ window.maze = (function () {
 				toPosition: [0, 1],
 				edgePosX: -1,
 				edgePosY: this.rows - 1,
-				getOpposite: function () {
+				GetOpposite: function () {
 					return maze.directions.North;
+				},
+				DrawGateway: function (posX, posY, gateway) {
+					var gatewaySize = maze.cellSize - maze.wallWidth;
+					maze.ctx.beginPath();
+
+					maze.ctx.moveTo((posX * maze.cellSize) + (maze.cellSize / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
+					maze.ctx.lineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + gatewaySize + (maze.wallWidth / 2));
+					maze.ctx.lineTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + gatewaySize + (maze.wallWidth / 2));
+
+					maze.ctx.fillStyle = gateway.color;
+					maze.ctx.fill();
+					maze.ctx.closePath();
 				}
 			},
 			West: {
@@ -229,8 +346,20 @@ window.maze = (function () {
 				toPosition: [-1, 0],
 				edgePosX: 0,
 				edgePosY: -1,
-				getOpposite: function () {
+				GetOpposite: function () {
 					return maze.directions.East;
+				},
+				DrawGateway: function (posX, posY, gateway) {
+					var gatewaySize = (maze.cellSize - maze.wallWidth);
+					maze.ctx.beginPath();
+
+					maze.ctx.moveTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.wallWidth / 2));
+					maze.ctx.lineTo((posX * maze.cellSize) + gatewaySize + (maze.wallWidth / 2), (posY * maze.cellSize) + (maze.cellSize / 2));
+					maze.ctx.lineTo((posX * maze.cellSize) + (maze.wallWidth / 2), (posY * maze.cellSize) + gatewaySize + (maze.wallWidth / 2));
+
+					maze.ctx.fillStyle = gateway.color;
+					maze.ctx.fill();
+					maze.ctx.closePath();
 				}
 			},
 			GetArray: function () {
@@ -259,17 +388,6 @@ window.maze = (function () {
 			},
 			length: 4
 		};
-
-		[this.entrance, this.exit].forEach(function (e) {
-			var direction = maze.directions.ByName(e.direction);
-			if (direction.edgePosX >= 0) {
-				e.posX = direction.edgePosX;
-				e.posY = e.position;
-			} else if (direction.edgePosY >= 0) {
-				e.posX = e.position;
-				e.posY = direction.edgePosY;
-			}
-		});
 	}
 
 	return maze;
