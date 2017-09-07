@@ -89,7 +89,7 @@ function solve(maze) {
 function generateLine(points, ctx, lineWidth) {
 	var percentColors = [
 		{ pct: 0.0, color: { r: 244, g: 67, b: 54 } },
-		//{ pct: 0.5, color: { r: 0xff, g: 0xff, b: 0 } },
+		{ pct: 0.5, color: { r: 76, g: 175, b: 80 } },
 		{ pct: 1.0, color: { r: 3, g: 169, b: 244 } }
 	];
 
